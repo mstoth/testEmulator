@@ -35,10 +35,12 @@ class Emulator:
         self.memory = ['001','001','002','003','000','000','000','000','000','000',
                        '003','002','002','003','013','000','000','013','004','100',
                        '001','001','001','003','000','000','000','000','000','000',
-                       '001','001','002','003','000','000','000','000','000','000',
+                       '001','001','002','002','000','000','000','000','000','000',
                        '000','000','000','000','000','000','000','000','000','000',
                        '000','000']
-        self.memory.extend(['015','114','715','614','514','718','361','617','857','115','410','217','219','666','100','616','516','114','716','614','514','952'])
+        self.memory.extend(['015','114','715','614','617','514','718','362','617',
+                            '858','115','410','217','219','667','100','616',
+                            '516','114','716','614','514','952'])
         self.memory.extend(['000' for i in range(100-len(self.memory))])
         self.istream = 0
         self.memory[0]='001'
@@ -62,10 +64,12 @@ class Emulator:
         self.memory = ['001','001','002','003','000','000','000','000','000','000',
                        '003','002','002','003','013','000','000','013','004','100',
                        '001','001','001','003','000','000','000','000','000','000',
-                       '001','001','002','003','000','000','000','000','000','000',
+                       '001','001','002','002','000','000','000','000','000','000',
                        '000','000','000','000','000','000','000','000','000','000',
                        '000','000']
-        self.memory.extend(['015','114','715','614','514','718','361','617','857','115','410','217','219','666','100','616','516','114','716','614','514','952'])
+        self.memory.extend(['015','114','715','614','617','514','718','362','617',
+                            '858','115','410','217','219','667','100','616',
+                            '516','114','716','614','514','952'])
         self.memory.extend(['000' for i in range(100-len(self.memory))])
         self.istream = 0
         self.output_stream = []
@@ -149,14 +153,14 @@ class Emulator:
             self.copy_input_to_cell(adr)
         elif op == 1:
             # clear and add
-            print(adr)
+            # print(adr)
             self.clear_and_add(adr)
         elif op == 2:
             # add
             self.add(adr)
         elif op == 3:
             # test accumulator (jump)
-            print(op,adr)
+            # print(op,adr)
             if self.acc < 0:
                 self.pc=adr
                 print("set pc to ",adr)
@@ -177,7 +181,8 @@ class Emulator:
             self.call(adr)
         elif op == 9:
             # stop
-            print("done")
+            self.pc=adr
+            # print("done")
         else:
             # error
             print("error")
@@ -291,7 +296,17 @@ class TestEmulator(unittest.TestCase):
         em.fetch()
         # self.assertEqual(em.inst,'034') ## for simple addition program
         self.assertEqual(em.inst,'015')  ## for improved Nim program
-        
+
+
+    def test_length_of_memory(self):
+        em = Emulator()
+        self.assertEqual(100,len(em.memory))
+
+    def test_input(self):
+        em = Emulator()
+        # self.assertEqual(em.input_stream[em.istream],'004')
+        self.assertEqual(em.input_stream[em.istream],'002')
+                
     def test_step(self):
         em = Emulator()
         #  self.assertEqual(em.pc,19)  ## for simple addition program
@@ -302,18 +317,12 @@ class TestEmulator(unittest.TestCase):
         self.assertEqual(em.inst,'015')
         self.assertEqual(em.memory[0],'001')
         em.reset()
-        em.dump()
-        em.step(25)
-        em.dump()
+        self.assertEqual(em.pc,52) ## for improved Nim program
 
-    def test_length_of_memory(self):
-        em = Emulator()
-        self.assertEqual(100,len(em.memory))
-
-    def test_input(self):
-        em = Emulator()
-        # self.assertEqual(em.input_stream[em.istream],'004')
-        self.assertEqual(em.input_stream[em.istream],'002')              
+        em.dump()
+        print("\n")
+        em.step(75)
+        em.dump()
 
 if __name__ == '__main__':
     unittest.main()
