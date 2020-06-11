@@ -6,9 +6,8 @@ class Emulator:
     inst = '000' # instruction register
     memory = ['000' for i in range(100)]
     output_stream = []
+    input_stream = []
     istream = 0 # points to next input value
-    # input_stream = ['004', '005']
-    input_stream = ['002','002','002','002','002','002']
     meaning = {0:"copy input card       ",
                1:"clear and add         ",
                2:"add                   ",
@@ -22,61 +21,31 @@ class Emulator:
     
     
     def __init__(self):
-        # use for simple addition program
-##        self.pc = 19
-##        self.memory = ['000' for i in range(19)]
-##        self.memory.extend(['034','035','134','235','636','536','900'])
-##        self.memory.extend(['000' for i in range(100-len(self.memory))])
-##        self.istream = 0
-##        self.memory[0]='001'
-        # use for improved Nim game
-        self.pc = 52
         self.output_stream = []
-        self.memory = ['001','001','002','003','000','000','000','000','000','000',
-                       '003','002','002','003','013','000','000','013','004','100',
-                       '001','001','001','003','000','000','000','000','000','000',
-                       '001','001','002','003','000','000','000','000','000','000',
-                       '000','000','000','000','000','000','000','000','000','000',
-                       '000','000']
-        self.memory.extend(['015','114','715','614','514','718','361','617','857','115','410','217','219','666','100','616','516','114','716','614','514','952'])
-        self.memory.extend(['000' for i in range(100-len(self.memory))])
         self.istream = 0
         self.memory[0]='001'
         self.inst = '000'
         self.acc = 0
-        self.input_stream = ['002','002','002','002','002','002']
 
 
     def reset(self):
-        # use for simple addition program
-##        self.pc = 19
-##        self.memory = ['000' for i in range(19)]
-##        self.memory.extend(['034','035','134','235','636','536','900',])
-##        self.memory.extend(['000' for i in range(100-len(self.memory))])
-##        self.istream = 0
-##        self.output_stream=[]
-##        self.inst = '000'
-##        self.acc = 0
-        # use for improved Nim game
-        self.pc = 52
-        self.memory = ['001','001','002','003','000','000','000','000','000','000',
-                       '003','002','002','003','013','000','000','013','004','100',
-                       '001','001','001','003','000','000','000','000','000','000',
-                       '001','001','002','003','000','000','000','000','000','000',
-                       '000','000','000','000','000','000','000','000','000','000',
-                       '000','000']
-        self.memory.extend(['015','114','715','614','514','718','361','617','857','115','410','217','219','666','100','616','516','114','716','614','514','952'])
-        self.memory.extend(['000' for i in range(100-len(self.memory))])
         self.istream = 0
         self.output_stream = []
+        self.input_stream = []
         self.memory[0]='001'
         self.inst = '000'
         self.acc = 0
-        self.input_stream = ['002','002','002','002','002','002']
+        self.memory=['000' for i in range(100)]
+        self.memory[0]='001'
 
     def dump(self):
+        if len(self.input_stream)==0:
+            istr="None"
+        else:
+            istr=self.input_stream[self.istream % len(self.input_stream)]
+        
         print(self.pc,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
-              self.input_stream[self.istream % len(self.input_stream)],'\t',self.output_stream,'\n')
+              istr,'\t',self.output_stream,'\n')
         for i in range(10):
             if i==0:
                 line="00: "
@@ -101,6 +70,8 @@ class Emulator:
 
     def copy_input_to_cell(self,cell):
         # copies input to memory cell
+        if cell > len(self.memory):
+            raise ValueError("Memory length is ", len(self.memory)," and index is ",cell)
         self.memory[cell]=self.input_stream[self.istream]
         self.istream = self.istream + 1 
 
@@ -149,14 +120,12 @@ class Emulator:
             self.copy_input_to_cell(adr)
         elif op == 1:
             # clear and add
-            print(adr)
             self.clear_and_add(adr)
         elif op == 2:
             # add
             self.add(adr)
         elif op == 3:
             # test accumulator (jump)
-            print(op,adr)
             if self.acc < 0:
                 self.pc=adr
                 print("set pc to ",adr)
@@ -199,6 +168,31 @@ class Emulator:
         for i in range(n):
             self.step1(i==0)
             
+    def loadProgram(self,fileName):
+        self.memory=['000' for i in range(100)]
+        self.memory[0]='001'
+        f=open(fileName,'r')
+        s=f.readline()
+        while len(s)>0:
+            a=s.split(";")
+            b=a[0]
+            c=b.split(":")
+            adr=c[0]
+            dta=c[1]
+            self.memory[int(adr)]=dta.strip()
+            s=f.readline()
+        f.close()
+        self.dump()
+
+    def loadInput(self,fileName):
+        self.input_stream = []
+        f=open(fileName,'r')
+        s=f.readline()
+        while len(s)>0:
+            self.input_stream.append(s.strip())
+            s=f.readline()
+        f.close()
+        print(self.input_stream)
         
         
 class TestEmulator(unittest.TestCase):
@@ -206,7 +200,7 @@ class TestEmulator(unittest.TestCase):
     def test_PC(self):
         em = Emulator()
         # self.assertEqual(em.pc,19,"pc incorrect") ## for simple addition program
-        self.assertEqual(em.pc,52,"pc incorrect") ## for improved Nim program
+        self.assertEqual(em.pc,0,"pc incorrect") ## for improved Nim program
 
     def test_read(self):
         # reads the next input value
@@ -225,6 +219,7 @@ class TestEmulator(unittest.TestCase):
     def test_copy_input_to_cell(self):
         # write input to cell
         em = Emulator()
+        em.input_stream = ['002']
         em.copy_input_to_cell(19) # input has '002'
         self.assertEqual('002',em.memory[19])
         
@@ -288,23 +283,16 @@ class TestEmulator(unittest.TestCase):
 
     def test_fetch(self):
         em = Emulator()
+        em.input_stream=['002']
         em.fetch()
-        # self.assertEqual(em.inst,'034') ## for simple addition program
-        self.assertEqual(em.inst,'015')  ## for improved Nim program
         
     def test_step(self):
         em = Emulator()
-        #  self.assertEqual(em.pc,19)  ## for simple addition program
-        self.assertEqual(em.pc,52)  ## for improved Nim program
-        em.step1()
-        # self.assertEqual(em.pc,20) ## for simple addition program
-        self.assertEqual(em.pc,53) ## for improved Nim program
-        self.assertEqual(em.inst,'015')
+        self.assertEqual(em.pc,0)
+        em.input_stream=['002']
+        em.step1()        
+        self.assertEqual(em.inst,'001')
         self.assertEqual(em.memory[0],'001')
-        em.reset()
-        em.dump()
-        em.step(25)
-        em.dump()
 
     def test_length_of_memory(self):
         em = Emulator()
@@ -312,8 +300,13 @@ class TestEmulator(unittest.TestCase):
 
     def test_input(self):
         em = Emulator()
-        # self.assertEqual(em.input_stream[em.istream],'004')
-        self.assertEqual(em.input_stream[em.istream],'002')              
+        em.input_stream=['002']
+        self.assertEqual(em.input_stream[em.istream],'002')
+
+    def test_load(self):
+        em = Emulator()
+        em.loadProgram("pgm1.asm")
+        self.assertEqual("034",em.memory[17])
 
 if __name__ == '__main__':
     unittest.main()
