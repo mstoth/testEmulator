@@ -58,7 +58,7 @@ class Emulator:
 
     def read(self):
         if self.istream < len(self.input_stream):
-            inst = self.input_stream[istream]
+            inst = self.input_stream[self.istream % len(self.input_stream)]
             self.istream = self.istream + 1
             return true
         else:
@@ -72,7 +72,7 @@ class Emulator:
         # copies input to memory cell
         if cell > len(self.memory):
             raise ValueError("Memory length is ", len(self.memory)," and index is ",cell)
-        self.memory[cell]=self.input_stream[self.istream]
+        self.memory[cell]=self.input_stream[self.istream % len(self.input_stream)]
         self.istream = self.istream + 1 
 
     def clear_and_add(self,cell):
@@ -145,8 +145,7 @@ class Emulator:
             # jump (subroutine)
             self.call(adr)
         elif op == 9:
-            # stop
-            print("done")
+            self.pc=adr
         else:
             # error
             print("error")
@@ -161,7 +160,7 @@ class Emulator:
               self.input_stream[0],'\t',self.output_stream)
         else:
             print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
-              self.input_stream[self.istream],'\t',self.output_stream)
+              self.input_stream[self.istream % len(self.input_stream)],'\t',self.output_stream)
 
     def step(self,n):
         print("\npc\tacc\tinst\tmeaning                 \tinput\toutput")
