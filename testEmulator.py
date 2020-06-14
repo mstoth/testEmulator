@@ -37,6 +37,7 @@ class Emulator:
         self.acc = 0
         self.memory=['000' for i in range(100)]
         self.memory[0]='001'
+        self.pc=0
 
     def dump(self):
         if len(self.input_stream)==0:
