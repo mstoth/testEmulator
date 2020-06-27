@@ -71,6 +71,8 @@ class Emulator:
 
     def copy_input_to_cell(self,cell):
         # copies input to memory cell
+        if self.input_stream == []:
+            return
         if cell > len(self.memory):
             raise ValueError("Memory length is ", len(self.memory)," and index is ",cell)
         self.memory[cell]=self.input_stream[self.istream % len(self.input_stream)]
@@ -157,7 +159,10 @@ class Emulator:
         if self.istream >= len(self.input_stream):
             self.istream = len(self.input_stream) - 1
         if first:
-            print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
+            if len(self.input_stream) == 0:
+                print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t','no input','\t',self.output_stream)
+            else:
+                print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
               self.input_stream[0],'\t',self.output_stream)
         else:
             print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
