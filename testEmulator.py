@@ -165,8 +165,13 @@ class Emulator:
                 print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
               self.input_stream[0],'\t',self.output_stream)
         else:
-            print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
-              self.input_stream[self.istream % len(self.input_stream)],'\t',self.output_stream)
+            if len(self.input_stream) == 0:
+                print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
+                  'no input','\t',self.output_stream)
+
+            else:
+                print(self.pc-1,'\t',self.acc,'\t',self.inst,'\t',self.meaning[(int(self.inst[0]))],'\t',
+                  self.input_stream[self.istream % len(self.input_stream)],'\t',self.output_stream)
 
     def step(self,n):
         print("\npc\tacc\tinst\tmeaning                 \tinput\toutput")
